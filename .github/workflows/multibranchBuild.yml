@@ -91,6 +91,11 @@ jobs:
           cluster: ${{ env.CLUSTER_NAME }}
           wait-for-service-stability: true
 
+      - name: Run smoke tests
+        if: ${{ env.SKIP_SMOKE_TESTS == 'false' }}
+        run: |
+          mvn -f pom.xml clean test -P st,BACKEND_EMEA_TEST
+
 
  pipelinePassed:
    runs-on: ubuntu-latest
