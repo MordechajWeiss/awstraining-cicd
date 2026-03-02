@@ -33,6 +33,9 @@ jobs:
       AWS_REGION:  ${{ needs.properties.outputs.REGION }}
       AWS_KEY:     ${{ secrets[format('{0}_AWS_KEY', inputs.hubEnv)] }}
       AWS_SECRET:  ${{ secrets[format('{0}_AWS_SECRET', inputs.hubEnv)] }}
+    outputs:
+      SECRET_ARN: ${{ steps.get-secret.outputs.SECRET_ARN }}
+
 
     steps:
       # 1) Checkout
@@ -63,3 +66,15 @@ jobs:
           chmod +x setup_new_region.sh
           chmod +x w2.sh
           ./setup_new_region.sh w2.sh ${{ env.AWS_PROFILE }} ${{ env.AWS_REGION }} apply -auto-approve
+
+      # 5) Get secret ARN
+      - name: Get secret ARN created by Terraform
+        id: get-secret
+        run: |
+          SECRET_ARN=$(aws secretsmanager list-secrets \
+            --region "$AWS_REGION" \
+            --query "SecretList[?starts_with(Name, 'backend-secretsmanager')].ARN" \
+            --output text)
+
+          echo "SECRET_ARN=$SECRET_ARN" >> $GITHUB_OUTPUT
+
