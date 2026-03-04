@@ -64,6 +64,11 @@ jobs:
       - name: Build with JaCoCo
         run: mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package org.jacoco:jacoco-maven-plugin:report
 
+      - name: Download secret arn
+        uses: actions/download-artifact@v4
+        with:
+          name: secret_arn
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -84,13 +89,12 @@ jobs:
           docker tag backend:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      
-      - name: Render task definition with secret ARN
+      - name: Read ARN and use render task definition
         run: |
-          echo "SECRET_ARN=${SECRET_ARN}"
-          sed "s|<<SECRET_ARN>>|${SECRET_ARN}|g" \
+          SECRET_ARN=$(cat secret_arn.txt)
+          echo "ARN=$SECRET_ARN"
+          sed "s|<<SECRET_ARN>>|$SECRET_ARN|g" \
           assembly-fargate/src/main/resources/fargate/BACKEND_EMEA_TEST/task.json > task-def.json
-
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
