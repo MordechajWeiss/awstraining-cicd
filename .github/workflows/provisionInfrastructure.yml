@@ -76,5 +76,12 @@ jobs:
             --query "SecretList[?starts_with(Name, 'backend-secretsmanager')].ARN" \
             --output text)
 
-          echo "SECRET_ARN=$SECRET_ARN" >> $GITHUB_OUTPUT
+          echo "${SECRET_ARN}" > secret_arn.txt
+
+      - name: Upload secret arn
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret_arn
+          path: secret_arn.txt
+
 
