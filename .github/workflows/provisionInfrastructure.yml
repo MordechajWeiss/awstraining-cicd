@@ -33,6 +33,7 @@ jobs:
       AWS_REGION:  ${{ needs.properties.outputs.REGION }}
       AWS_KEY:     ${{ secrets[format('{0}_AWS_KEY', inputs.hubEnv)] }}
       AWS_SECRET:  ${{ secrets[format('{0}_AWS_SECRET', inputs.hubEnv)] }}
+      GH_TOKEN: ${{ github.token }}
     outputs:
       SECRET_ARN: ${{ steps.get-secret.outputs.SECRET_ARN }}
     
@@ -59,7 +60,7 @@ jobs:
       
       # extra - install gh
       - name: Install GitHub CLI
-        run: sudo apt-get install gh
+        run: sudo apt-get install -y gh
 
 
       # 3) Configure AWS profile 
