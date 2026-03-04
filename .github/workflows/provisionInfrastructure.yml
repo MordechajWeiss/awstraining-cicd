@@ -35,6 +35,12 @@ jobs:
       AWS_SECRET:  ${{ secrets[format('{0}_AWS_SECRET', inputs.hubEnv)] }}
     outputs:
       SECRET_ARN: ${{ steps.get-secret.outputs.SECRET_ARN }}
+    
+    permissions:
+      contents: read
+      id-token: write
+      actions: write
+
 
 
     steps:
@@ -50,6 +56,11 @@ jobs:
         with:
           terraform_version: 1.5.7
           terraform_wrapper: false # extra logs
+      
+      # extra - install gh
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+
 
       # 3) Configure AWS profile 
       - name: Configure AWS profile
@@ -76,12 +87,8 @@ jobs:
             --query "SecretList[?starts_with(Name, 'backend-secretsmanager')].ARN" \
             --output text)
 
-          echo "${SECRET_ARN}" > secret_arn.txt
-
-      - name: Upload secret arn
-        uses: actions/upload-artifact@v4
-        with:
-          name: secret_arn
-          path: secret_arn.txt
+            echo "${SECRET_ARN}"
+            gh secret set BACKEND_SECRET_ARN \
+            --body "${SECRET_ARN}"
 
 
