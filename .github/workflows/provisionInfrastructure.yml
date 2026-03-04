@@ -80,7 +80,22 @@ jobs:
           chmod +x w2.sh
           ./setup_new_region.sh w2.sh ${{ env.AWS_PROFILE }} ${{ env.AWS_REGION }} apply -auto-approve
 
-      # 5) Get secret ARN
+      - name: Sprawdź status GH CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh auth status
+
+      - name: Wypisz environments (czy widać BACKEND_EMEA_TEST)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api repos/${{ github.repository }}/environments | jq '.environments[].name'
+
+      - name: Pobierz public-key dla environment (test API call)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api repos/${{ github.repository }}/environments/BACKEND_EMEA_TEST/secrets/public-key
+     
+        # 5) Get secret ARN
       - name: Get secret ARN created by Terraform
         id: get-secret
         run: |
