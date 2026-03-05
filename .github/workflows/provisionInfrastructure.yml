@@ -27,23 +27,12 @@ jobs:
     name: Provision infrastructure (Terraform)
     runs-on: ubuntu-latest
     needs: properties
-    environment: ${{ inputs.hubEnv }}
     env:
       AWS_ACCOUNT: ${{ needs.properties.outputs.AWS_ACCOUNT }}
       AWS_PROFILE: ${{ needs.properties.outputs.PROFILE }}
       AWS_REGION:  ${{ needs.properties.outputs.REGION }}
       AWS_KEY:     ${{ secrets[format('{0}_AWS_KEY', inputs.hubEnv)] }}
       AWS_SECRET:  ${{ secrets[format('{0}_AWS_SECRET', inputs.hubEnv)] }}
-      GH_TOKEN: ${{ github.token }}
-    outputs:
-      SECRET_ARN: ${{ steps.get-secret.outputs.SECRET_ARN }}
-    
-    permissions:
-      contents: read
-      id-token: write
-      actions: write
-
-
 
     steps:
       # 1) Checkout
@@ -58,11 +47,6 @@ jobs:
         with:
           terraform_version: 1.5.7
           terraform_wrapper: false # extra logs
-      
-      # extra - install gh
-      - name: Install GitHub CLI
-        run: sudo apt-get install -y gh
-
 
       # 3) Configure AWS profile 
       - name: Configure AWS profile
@@ -79,34 +63,3 @@ jobs:
           chmod +x setup_new_region.sh
           chmod +x w2.sh
           ./setup_new_region.sh w2.sh ${{ env.AWS_PROFILE }} ${{ env.AWS_REGION }} apply -auto-approve
-
-      - name: Sprawdź status GH CLI
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh auth status
-
-      - name: Wypisz environments (czy widać BACKEND_EMEA_TEST)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api repos/${{ github.repository }}/environments | jq '.environments[].name'
-
-      - name: Pobierz public-key dla environment (test API call)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api repos/${{ github.repository }}/environments/BACKEND_EMEA_TEST/secrets/public-key
-     
-        # 5) Get secret ARN
-      - name: Get secret ARN created by Terraform
-        id: get-secret
-        run: |
-          SECRET_ARN=$(aws secretsmanager list-secrets \
-            --region "$AWS_REGION" \
-            --query "SecretList[?starts_with(Name, 'backend-secretsmanager')].ARN" \
-            --output text)
-
-            echo "${SECRET_ARN}"
-            gh secret set BACKEND_SECRET_ARN \
-            --env BACKEND_EMEA_TEST \
-            --body "${SECRET_ARN}"
-
-
