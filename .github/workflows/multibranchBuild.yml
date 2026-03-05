@@ -94,13 +94,7 @@ jobs:
       - name: Run smoke tests
         if: ${{ env.SKIP_SMOKE_TESTS == 'false' }}
         run: |
-          mvn -f pom.xml clean test -P st,BACKEND_EMEA_TEST
-
-      
-      - name: List Maven profiles
-        run: |
-          echo "Profiles found in pom.xml:"
-          grep -R "<id>" -n pom.xml | grep profile || echo "No profiles found"
+          mvn -f pom.xml clean test -P BACKEND_EMEA_TEST
 
 
 
