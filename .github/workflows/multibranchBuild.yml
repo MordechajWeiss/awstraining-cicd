@@ -96,6 +96,13 @@ jobs:
         run: |
           mvn -f pom.xml clean test -P st,BACKEND_EMEA_TEST
 
+      
+      - name: List Maven profiles
+        run: |
+          echo "Profiles found in pom.xml:"
+          grep -R "<id>" -n pom.xml | grep profile || echo "No profiles found"
+
+
 
  pipelinePassed:
    runs-on: ubuntu-latest
